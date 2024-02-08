@@ -1,3 +1,5 @@
+from functools import cached_property
+
 from allauth.socialaccount import app_settings
 from allauth.socialaccount.adapter import get_adapter
 from allauth.socialaccount.providers.oauth2.views import (
@@ -12,8 +14,13 @@ from .provider import OktaProvider
 class OktaOAuth2Adapter(OAuth2Adapter):
     provider_id = OktaProvider.id
 
-    settings = app_settings.PROVIDERS.get(provider_id, {})
-    okta_base_url = settings.get("OKTA_BASE_URL")
+    @cached_property
+    def settings(self):
+        return app_settings.PROVIDERS.get(self.provider_id, self.get_provider().app.settings)
+
+    @cached_property
+    def okta_base_url(self):
+        return self.settings.get("OKTA_BASE_URL")
 
     @property
     def access_token_url(self):
